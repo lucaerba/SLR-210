@@ -19,7 +19,7 @@ public class Process extends UntypedAbstractActor {
     private Boolean proposal;
     private int ballot;
 
-    /**
+    /*
      * Static method to create an actor
      */
     public static Props createActor(int n, int i) {
@@ -48,7 +48,7 @@ public class Process extends UntypedAbstractActor {
             propose(true);
         }
     }
-
+    
     @Override
     public String toString() {
         return "Process #" + i;
