@@ -25,19 +25,19 @@ public class Process extends UntypedAbstractActor {
     private int readBallot;
     private int imposeBallot;
     private int estimate;
-    private boolean hold;
+    private boolean hold ;
     private HashMap<ActorRef, State> states;
     private int nAck = 0;
-    private final double alpha = 0.3;
+    private final double alpha;
 
     /**
      * Static method to create an actor
      */
-    public static Props createActor(int n, int i) {
-        return Props.create(Process.class, () -> new Process(n, i));
+    public static Props createActor(int n, int i, float alpha) {
+        return Props.create(Process.class, () -> new Process(n, i, alpha));
     }
 
-    public Process(int n, int i) {
+    public Process(int n, int i, float alpha) {
         this.n = n;
         this.i = i;
         this.ballot = i-n;
@@ -45,6 +45,8 @@ public class Process extends UntypedAbstractActor {
         this.imposeBallot = i-n;
         this.estimate = -1;
         this.states = new HashMap<ActorRef, State>();;
+        this.hold = false;
+        this.alpha = alpha;
     }
 
     /*
@@ -84,6 +86,8 @@ public class Process extends UntypedAbstractActor {
             processes = (ArrayList<ActorRef>) m.references;
 
         } else if (message instanceof Launch) {
+            if(this.hold) return;
+
             log.info(this + " - launch received");
 
             Random random = new Random();
@@ -117,7 +121,9 @@ public class Process extends UntypedAbstractActor {
         }else if (message instanceof Crash){
             log.info(this + " - crash received");
             this.faultProneMode = true;
-
+        }else if(message instanceof Hold){
+            log.info(this + " - hold received");
+            this.hold = true;
         }
     }
 
@@ -171,7 +177,7 @@ public class Process extends UntypedAbstractActor {
         this.states.put(sender, new State(estimate, estBallot));
 
         //  If we get at least n/2 states (majority)
-        if (this.states.size() > this.n/2){
+        if (this.states.size() >= this.n/2){
             int highestEstBallot = 0;
             Integer proposal = 0;
 
