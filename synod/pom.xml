@@ -7,7 +7,7 @@
     <version>1.0</version>
 
     <properties>
-      <akka.version>2.9.0</akka.version>
+        <akka.version>2.9.0</akka.version>
     </properties>
 
     <repositories>
@@ -68,6 +68,11 @@
                         <argument>-classpath</argument>
                         <classpath />
                         <argument>com.example.synod.Main</argument>
+                        <argument>${N}</argument>
+                        <argument>${f}</argument>
+                        <argument>${alpha}</argument>
+                        <argument>${tle}</argument>
+
                     </arguments>
                 </configuration>
             </plugin>

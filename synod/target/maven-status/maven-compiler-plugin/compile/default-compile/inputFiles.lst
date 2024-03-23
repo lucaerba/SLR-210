@@ -1,0 +1,12 @@
+/Users/lucaerbi/Desktop/Code/SLR-210/synod/src/main/java/com/example/synod/Main.java
+/Users/lucaerbi/Desktop/Code/SLR-210/synod/src/main/java/com/example/synod/message/Impose.java
+/Users/lucaerbi/Desktop/Code/SLR-210/synod/src/main/java/com/example/synod/message/Decide.java
+/Users/lucaerbi/Desktop/Code/SLR-210/synod/src/main/java/com/example/synod/message/Hold.java
+/Users/lucaerbi/Desktop/Code/SLR-210/synod/src/main/java/com/example/synod/message/Ack.java
+/Users/lucaerbi/Desktop/Code/SLR-210/synod/src/main/java/com/example/synod/message/Abort.java
+/Users/lucaerbi/Desktop/Code/SLR-210/synod/src/main/java/com/example/synod/message/Launch.java
+/Users/lucaerbi/Desktop/Code/SLR-210/synod/src/main/java/com/example/synod/message/Crash.java
+/Users/lucaerbi/Desktop/Code/SLR-210/synod/src/main/java/com/example/synod/message/Membership.java
+/Users/lucaerbi/Desktop/Code/SLR-210/synod/src/main/java/com/example/synod/message/Read.java
+/Users/lucaerbi/Desktop/Code/SLR-210/synod/src/main/java/com/example/synod/Process.java
+/Users/lucaerbi/Desktop/Code/SLR-210/synod/src/main/java/com/example/synod/message/Gather.java

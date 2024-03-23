@@ -16,7 +16,7 @@ public class Process extends UntypedAbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);// Logger attached to actor
     private boolean faultProneMode = false;
     private boolean silentMode = false;
-
+    private final boolean DEBUG = false ;
     private int n;//number of processes
     private int i;//id of current process
     private ArrayList<ActorRef> processes;//other processes' references
@@ -54,7 +54,7 @@ public class Process extends UntypedAbstractActor {
     with this value until a value is decided. As a basis, one can use the OFC pseudocode discussed in the lecture (adjusted to be used within AKKA).
      */
     private void propose(int v) {
-        log.info(this + " - propose("+ v+")");
+        if(DEBUG) log.info(this + " - propose("+ v+")");
         proposal = v;
         ballot += n;
         this.states.clear();
@@ -64,7 +64,7 @@ public class Process extends UntypedAbstractActor {
                 continue;
             }
             actor.tell(new Read(this.ballot), this.getSelf());
-            this.log.info("Read ballot " + this.ballot + " msg: " + this + " -> " + actor.toString());
+            if(DEBUG) this.log.info("Read ballot " + this.ballot + " msg: " + this + " -> " + actor.toString());
         }
     }
 
@@ -81,48 +81,48 @@ public class Process extends UntypedAbstractActor {
         }
 
         if (message instanceof Membership) {
-            log.info(this + " - membership received");
+            if(DEBUG) log.info(this + " - membership received");
             Membership m = (Membership) message;
             processes = (ArrayList<ActorRef>) m.references;
 
         } else if (message instanceof Launch) {
             if(this.hold) return;
 
-            log.info(this + " - launch received");
+            if(DEBUG) log.info(this + " - launch received");
 
             Random random = new Random();
             int n = random.nextInt()%2 ;
             propose(n);
 
         } else if (message instanceof Read){
-            log.info(this + " - read received");
+            if(DEBUG) log.info(this + " - read received");
             readHandler((Read) message, getSender());
 
         } else if (message instanceof Abort) {
-            log.info(this + " - abort received");
+            if(DEBUG) log.info(this + " - abort received");
             abortHandler((Abort) message, getSender());
             
         }else if (message instanceof Gather){
-            log.info(this + " - gather received");
+            if(DEBUG) log.info(this + " - gather received");
             gatherHandler((Gather) message, getSender());
 
         }else if (message instanceof Impose){
-            log.info(this + " - impose received");
+            if(DEBUG) log.info(this + " - impose received");
             imposeHandler((Impose) message, getSender());
 
         }else if (message instanceof Ack){
-            log.info(this + " - ack received");
+            if(DEBUG) log.info(this + " - ack received");
             ackHandler((Ack) message, getSender());
 
         }else if (message instanceof Decide){
-            log.info(this + " - decide received");
+            if(DEBUG) log.info(this + " - decide received");
             decideHandler((Decide) message, getSender());
 
         }else if (message instanceof Crash){
-            log.info(this + " - crash received");
+            if(DEBUG) log.info(this + " - crash received");
             this.faultProneMode = true;
         }else if(message instanceof Hold){
-            log.info(this + " - hold received");
+            if(DEBUG) log.info(this + " - hold received");
             this.hold = true;
         }
     }
@@ -144,7 +144,7 @@ public class Process extends UntypedAbstractActor {
 
         if(this.nAck >= (this.n/2)){
             this.nAck = 0;
-            log.info(this + " received ACK from a majority" + " (b=" + ballot + ")");
+            if(DEBUG) log.info(this + " received ACK from a majority" + " (b=" + ballot + ")");
             for(ActorRef actor : this.processes){
                 actor.tell(new Decide(this.proposal), getSelf());
             }
@@ -156,14 +156,14 @@ public class Process extends UntypedAbstractActor {
         int v = message.getProposal();
 
         if((this.readBallot > newBallot || this.imposeBallot > newBallot)&(!this.hold)){
-            this.log.info(this + " - sending ABORT message (" + newBallot + ") to " + sender.path().name());
+            if(DEBUG) this.log.info(this + " - sending ABORT message (" + newBallot + ") to " + sender.path().name());
             sender.tell(new Abort(newBallot), getSelf());
 
         }else{
             this.estimate = v;
             this.imposeBallot = newBallot;
 
-            this.log.info(this + " - sending ACK message (" + newBallot + ") to " + sender.path().name());
+            if(DEBUG) this.log.info(this + " - sending ACK message (" + newBallot + ") to " + sender.path().name());
             sender.tell(new Ack(newBallot), getSelf());
             
         }
@@ -208,11 +208,11 @@ public class Process extends UntypedAbstractActor {
         int newBallot = r.getBallot();
 
         if((this.readBallot > newBallot || this.imposeBallot > newBallot) & (!this.hold)){
-            this.log.info(this + " - sending ABORT message (" + newBallot + ") to "+ sender.path().name());
+            if(DEBUG) this.log.info(this + " - sending ABORT message (" + newBallot + ") to "+ sender.path().name());
             sender.tell(new Abort(newBallot), this.getSelf());
 
         }else{
-            this.log.info(this + " - sending GATHER message (" + newBallot + ", " + this.imposeBallot + ", " + this.estimate+") to " + sender.path().name());
+            if(DEBUG) this.log.info(this + " - sending GATHER message (" + newBallot + ", " + this.imposeBallot + ", " + this.estimate+") to " + sender.path().name());
             this.readBallot = newBallot;
             sender.tell(new Gather(newBallot, this.imposeBallot, this.estimate), this.getSelf());
 

@@ -20,6 +20,9 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException {
         if (args.length != 4) {
+            for(String s:args){
+                System.out.println(s);
+            }
             System.out.println("Usage: java Main <N> <f> <alpha> <tle>");
             return;
         }
@@ -32,7 +35,7 @@ public class Main {
         try {
             // Redirect System.out to a file
             File logFile = new File("system.log");
-            FileOutputStream fos = new FileOutputStream(logFile);
+            FileOutputStream fos = new FileOutputStream(logFile, true);
             PrintStream ps = new PrintStream(fos);
             System.setOut(ps);
         } catch (Exception e) {
@@ -43,6 +46,8 @@ public class Main {
         final ActorSystem system = ActorSystem.create("system");
         system.log().info("System started with N=" + N );
         system.log().info("System started with tle=" + tle );
+        system.log().info("System started with f=" + f );
+        system.log().info("System started with alpha=" + alpha );
 
         ArrayList<ActorRef> processes = new ArrayList<>();
 
@@ -86,5 +91,14 @@ public class Main {
         }
         system.scheduler().scheduleOnce(Duration.create(tle, TimeUnit.MILLISECONDS), processes.get(f), new Launch(), system.dispatcher(), null);
 
+        // Schedule the shutdown after a certain period of time (tle + 1 second for safety)
+        system.scheduler().scheduleOnce(
+                Duration.create(tle + 1000, TimeUnit.MILLISECONDS),
+                () -> {
+                    system.terminate();
+                    System.out.println("System is shutting down...");
+                },
+                system.dispatcher()
+        );
     }
 }

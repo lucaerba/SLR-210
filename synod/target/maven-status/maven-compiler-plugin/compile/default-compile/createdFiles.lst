@@ -1,0 +1,13 @@
+com/example/synod/message/Abort.class
+com/example/synod/message/Crash.class
+com/example/synod/Process$State.class
+com/example/synod/message/Ack.class
+com/example/synod/message/Gather.class
+com/example/synod/Main.class
+com/example/synod/message/Membership.class
+com/example/synod/message/Launch.class
+com/example/synod/Process.class
+com/example/synod/message/Decide.class
+com/example/synod/message/Read.class
+com/example/synod/message/Hold.class
+com/example/synod/message/Impose.class
