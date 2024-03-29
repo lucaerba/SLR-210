@@ -29,7 +29,7 @@ public class Main {
 
         int N = Integer.parseInt(args[0]);
         int f = Integer.parseInt(args[1]);
-        float alpha = Float.parseFloat(args[2]);
+        double alpha = Double.parseDouble(args[2]);
         int tle = Integer.parseInt(args[3]);
 
         try {
@@ -93,7 +93,7 @@ public class Main {
 
         // Schedule the shutdown after a certain period of time (tle + 1 second for safety)
         system.scheduler().scheduleOnce(
-                Duration.create(tle + 1000, TimeUnit.MILLISECONDS),
+                Duration.create(tle + 500, TimeUnit.MILLISECONDS),
                 () -> {
                     system.terminate();
                     System.out.println("System is shutting down...");

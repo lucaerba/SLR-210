@@ -6,7 +6,6 @@ import akka.actor.UntypedAbstractActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import com.example.synod.message.*;
-import scala.Int;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,8 +13,7 @@ import java.util.Random;
 
 public class Process extends UntypedAbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);// Logger attached to actor
-    private boolean faultProneMode = false;
-    private boolean silentMode = false;
+    
     private final boolean DEBUG = false ;
     private int n;//number of processes
     private int i;//id of current process
@@ -25,19 +23,22 @@ public class Process extends UntypedAbstractActor {
     private int readBallot;
     private int imposeBallot;
     private int estimate;
-    private boolean hold ;
     private HashMap<ActorRef, State> states;
     private int nAck = 0;
     private final double alpha;
 
+    private boolean hold;
+    private boolean faultProneMode = false;
+    private boolean silentMode = false;
+
     /**
      * Static method to create an actor
      */
-    public static Props createActor(int n, int i, float alpha) {
+    public static Props createActor(int n, int i, double alpha) {
         return Props.create(Process.class, () -> new Process(n, i, alpha));
     }
 
-    public Process(int n, int i, float alpha) {
+    public Process(int n, int i, double alpha) {
         this.n = n;
         this.i = i;
         this.ballot = i-n;
@@ -73,7 +74,7 @@ public class Process extends UntypedAbstractActor {
         if(this.silentMode){
             return;
         }else if(this.faultProneMode){//Fault Prone Mode
-            boolean crash = (((new Random()).nextFloat())<this.alpha);
+            boolean crash = (((new Random()).nextDouble())<this.alpha);
             if(crash){
                 this.silentMode = true;
                 return;
@@ -121,6 +122,7 @@ public class Process extends UntypedAbstractActor {
         }else if (message instanceof Crash){
             if(DEBUG) log.info(this + " - crash received");
             this.faultProneMode = true;
+
         }else if(message instanceof Hold){
             if(DEBUG) log.info(this + " - hold received");
             this.hold = true;
