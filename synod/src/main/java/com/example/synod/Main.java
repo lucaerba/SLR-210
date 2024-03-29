@@ -50,21 +50,22 @@ public class Main {
         system.log().info("System started with alpha=" + alpha );
 
         ArrayList<ActorRef> processes = new ArrayList<>();
+        
 
         for (int i = 0; i < N; i++) {
             final ActorRef a = system.actorOf(Process.createActor(N, i, alpha));
             processes.add(a);
         }
-
-        //Record start time
-        long start = System.currentTimeMillis();
-        Main.startTime = start;
-
+        
         //give each process a view of all the other processes
         Membership m = new Membership(processes);
         for (ActorRef actor : processes) {
             actor.tell(m, ActorRef.noSender());
         }
+
+        //Record start time
+        long start = System.currentTimeMillis();
+        Main.startTime = start;
 
         //Send LaunchMsg
         for (ActorRef actor : processes) {
@@ -89,16 +90,16 @@ public class Main {
                 system.scheduler().scheduleOnce(Duration.create(tle, TimeUnit.MILLISECONDS), processes.get(i), new Hold(), system.dispatcher(), null);
             }
         }
-        system.scheduler().scheduleOnce(Duration.create(tle, TimeUnit.MILLISECONDS), processes.get(f), new Launch(), system.dispatcher(), null);
+        //system.scheduler().scheduleOnce(Duration.create(tle, TimeUnit.MILLISECONDS), processes.get(f), new Launch(), system.dispatcher(), null);
 
-        // Schedule the shutdown after a certain period of time (tle + 1 second for safety)
-        system.scheduler().scheduleOnce(
-                Duration.create(tle + 500, TimeUnit.MILLISECONDS),
-                () -> {
-                    system.terminate();
-                    System.out.println("System is shutting down...");
-                },
-                system.dispatcher()
-        );
+        // Schedule the shutdown after a certain period of time (tle + tle second for safety)
+        // system.scheduler().scheduleOnce(
+        //         Duration.create(tle + tle, TimeUnit.MILLISECONDS),
+        //         () -> {
+        //             system.terminate();
+        //             System.out.println("System is shutting down...");
+        //         },
+        //         system.dispatcher()
+        // );
     }
 }

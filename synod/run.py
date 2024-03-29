@@ -1,10 +1,10 @@
 import subprocess
 import os
 # Define the parameters to experiment with
-N_values = [3, 10, 100]
-f_values = [1, 4, 49]
+N_values = [3, 10, 40, 100]
+f_values = [1, 4, 19, 49]
 alpha_values = [0, 0.1, 1]
-tle_values = [200, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100]
+tle_values = [5, 10, 12, 15, 25, 35, 45, 65, 75, 85, 90, 95, 100, 150, 200, 300, 400, 500, 1000, 1500, 2000]
 
 def run_java():
     #remove and create system.log file
@@ -31,7 +31,7 @@ def run_java():
                     #run them sequentially not in parallel
                     subprocess.run(command)
 
-run_java()
+#run_java()
 
 import re
 # Initialize parameters_list and times_list as lists of empty lists
@@ -58,6 +58,7 @@ with open("system.log", "r") as file:
             if match:
                 parameters = {}
                 parameters['N'] = int(match.group(1))
+                
 
             match = re.search(r'System started with tle=(\d+)', line)
             if match:
@@ -80,6 +81,7 @@ with open("system.log", "r") as file:
                 print(f"First decision time: {match.group(1)}")
                 first = False
                 time_min = int(match.group(1))
+                first_shutting = True
             else:
                 time_min = min(time_min, int(match.group(1)))
             print(f"Decision time: {match.group(1)}")
@@ -87,9 +89,12 @@ with open("system.log", "r") as file:
         match = re.search(r'System is shutting down...', line)
         if match:
             first = True
-            times_list[n_exp].append(time_min)
+            if first_shutting is True:
+                print(f"Decision time saved: {time_min}")
+                times_list[n_exp].append(time_min)
+                first_shutting = False
 
-#average the times of the 5 experiments, to get the mean time of each experiment parameter, each time_list has 5 arrays, one for each run
+#average the times of the 5 experiments, to get the mean time of each experiment parameter, time_list has 5 arrays, one for each run
 #so take the mean of the elements in the same position of each array and save it in a new array
 times_list = [sum(x) / len(x) for x in zip(*times_list)]
 print("Parameters list:", parameters_list)
@@ -113,33 +118,41 @@ df['time'] = times_list
 
 print(df)
 
-# Create a figure with 2 subplots
-fig, axs = plt.subplots(2, 1, figsize=(10, 10))
-
-# Define the baseline values
-baseline_N_values = [3, 10, 100]
-baseline_alpha_values = [0.0, 0.1, 1]
-
 # Plot latency vs N for a fixed tle and different alphas
-for alpha in baseline_alpha_values:
-    subset = df[(df['alpha'] == alpha) & (df['tle'] == 1000)]
+fig1, ax1 = plt.subplots(figsize=(10, 5))
+for alpha in alpha_values:
+    subset = df[(df['alpha'] == alpha) & (df['tle'] == 45)]
     if not subset.empty:
-        axs[0].plot(subset['N'], subset['time'], 'o-', label=f"alpha = {alpha}")
-axs[0].set_title('Latency vs N for tle=1000')
-axs[0].set_xlabel('N')
-axs[0].set_ylabel('Latency')
-axs[0].legend()
+        ax1.plot(subset['N'], subset['time'], 'o-', label=f"alpha = {alpha}")
+ax1.set_title('Latency vs N for tle=45')
+ax1.set_xlabel('N')
+ax1.set_ylabel('Latency')
+ax1.legend()
+plt.savefig('latency_vs_N.png')
+plt.show()
 
 # Plot latency vs tle for a fixed N and different alphas
-for alpha in baseline_alpha_values:
-    subset = df[(df['alpha'] == alpha) & (df['N'] == 100)]
+fig2, ax2 = plt.subplots(figsize=(10, 5))
+for alpha in alpha_values:
+    subset = df[(df['alpha'] == alpha) & (df['N'] == 10)]
     if not subset.empty:
-        axs[1].plot(subset['tle'], subset['time'], 'o-', label=f"alpha = {alpha}")
-axs[1].set_title('Latency vs tle for N=100')
-axs[1].set_xlabel('tle')
-axs[1].set_ylabel('Latency')
-axs[1].legend()
-
-# Save the plot to a file for each graph
-plt.savefig('latency.png')
+        ax2.plot(subset['tle'], subset['time'], 'o-', label=f"alpha = {alpha}")
+ax2.set_title('Latency vs tle for N=10')
+ax2.set_xlabel('tle')
+ax2.set_ylabel('Latency')
+ax2.legend()
+plt.savefig('latency_vs_tle.png')
 plt.show()
+
+#Plot Latency vs tle for a fixed N and alpha
+for N in N_values:
+    fig, ax = plt.subplots(figsize=(10, 5))
+    subset = df[(df['N'] == N) & (df['alpha'] == 0.0)]
+    if not subset.empty:
+        ax.plot(subset['tle'], subset['time'], 'o-', label=f"N = {N}")
+    ax.set_title(f'Latency vs tle for alpha=0.0, N={N}')
+    ax.set_xlabel('tle')
+    ax.set_ylabel('Latency')
+    ax.legend()
+    plt.savefig(f'latency_vs_tle_N_{N}.png')
+    plt.show()

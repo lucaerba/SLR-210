@@ -5,18 +5,24 @@ import akka.actor.Props;
 import akka.actor.UntypedAbstractActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import scala.concurrent.duration.Duration;
+
 import com.example.synod.message.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class Process extends UntypedAbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);// Logger attached to actor
     
     private final boolean DEBUG = false ;
+
     private int n;//number of processes
     private int i;//id of current process
+    private final double alpha;
+
     private ArrayList<ActorRef> processes;//other processes' references
     private int proposal;
     private int ballot;
@@ -25,12 +31,11 @@ public class Process extends UntypedAbstractActor {
     private int estimate;
     private HashMap<ActorRef, State> states;
     private int nAck = 0;
-    private final double alpha;
 
     private boolean hold;
     private boolean faultProneMode = false;
     private boolean silentMode = false;
-
+    private int decidedValue = -1;
     /**
      * Static method to create an actor
      */
@@ -74,7 +79,7 @@ public class Process extends UntypedAbstractActor {
         if(this.silentMode){
             return;
         }else if(this.faultProneMode){//Fault Prone Mode
-            boolean crash = (((new Random()).nextDouble())<this.alpha);
+            boolean crash = (((new Random()).nextDouble()) < this.alpha);
             if(crash){
                 this.silentMode = true;
                 return;
@@ -91,9 +96,18 @@ public class Process extends UntypedAbstractActor {
 
             if(DEBUG) log.info(this + " - launch received");
 
-            Random random = new Random();
-            int n = random.nextInt()%2 ;
-            propose(n);
+                // Pick a random value (0 or 1
+                if(this.decidedValue == -1){
+                    Random random = new Random();
+                    boolean b = random.nextBoolean();
+                    if (b) {
+                        this.decidedValue = 1;
+                    } else {
+                        this.decidedValue = 0;
+                    }
+                }
+                propose(this.decidedValue);
+                getContext().system().scheduler().scheduleOnce(Duration.create(20, TimeUnit.MILLISECONDS), getSelf(), new Launch(), getContext().system().dispatcher(), null);
 
         } else if (message instanceof Read){
             if(DEBUG) log.info(this + " - read received");
@@ -139,17 +153,27 @@ public class Process extends UntypedAbstractActor {
         for(ActorRef actor : this.processes){
             actor.tell(new Decide(v), getSelf());
         }
+        
     }
 
     private void ackHandler(Ack message, ActorRef sender) {
         this.nAck++;
 
-        if(this.nAck >= (this.n/2)){
+        if(this.nAck > (this.n/2)){
             this.nAck = 0;
             if(DEBUG) log.info(this + " received ACK from a majority" + " (b=" + ballot + ")");
             for(ActorRef actor : this.processes){
+                
                 actor.tell(new Decide(this.proposal), getSelf());
             }
+            getContext().getSystem().scheduler().scheduleOnce(
+                    Duration.create(100, TimeUnit.MILLISECONDS),
+                    () -> {
+                        getContext().getSystem().terminate();
+                        System.out.println("System is shutting down...");
+                    },
+                    getContext().getSystem().dispatcher()
+            );
         }
     }
 
@@ -157,7 +181,7 @@ public class Process extends UntypedAbstractActor {
         int newBallot = message.getBallot();
         int v = message.getProposal();
 
-        if((this.readBallot > newBallot || this.imposeBallot > newBallot)&(!this.hold)){
+        if((this.readBallot > newBallot || this.imposeBallot > newBallot)){
             if(DEBUG) this.log.info(this + " - sending ABORT message (" + newBallot + ") to " + sender.path().name());
             sender.tell(new Abort(newBallot), getSelf());
 
@@ -209,7 +233,7 @@ public class Process extends UntypedAbstractActor {
     private void readHandler(Read r, ActorRef sender){
         int newBallot = r.getBallot();
 
-        if((this.readBallot > newBallot || this.imposeBallot > newBallot) & (!this.hold)){
+        if((this.readBallot > newBallot || this.imposeBallot > newBallot) ){
             if(DEBUG) this.log.info(this + " - sending ABORT message (" + newBallot + ") to "+ sender.path().name());
             sender.tell(new Abort(newBallot), this.getSelf());
 
