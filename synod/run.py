@@ -4,7 +4,8 @@ import os
 N_values = [3, 10, 40, 100]
 f_values = [1, 4, 19, 49]
 alpha_values = [0, 0.1, 1]
-tle_values = [5, 10, 12, 15, 25, 35, 45, 65, 75, 85, 90, 95, 100, 150, 200, 300, 400, 500, 1000, 1500, 2000]
+tle_values = [1, 2, 3, 4,  5, 6, 7, 8, 10, 12, 15, 20, 25, 30, 35, 45, 65, 75, 85, 90, 95, 100, 150, 200, 300, 400, 500, 1000, 1500, 2000]
+n_experiments = 50
 
 def run_java():
     #remove and create system.log file
@@ -14,9 +15,9 @@ def run_java():
     else:
         print("system.log file does not exist")
 
-    #Repeat the experiment 5 times
+    #Repeat the experiment n_experiments times
     # Loop over all combinations of parameters
-    for j in range(5):
+    for j in range(n_experiments):
         #print on system.log file the number of the experiment
         with open("system.log", "a") as file:
             file.write(f"Experiment number: {j}\n")
@@ -36,10 +37,10 @@ def run_java():
 import re
 # Initialize parameters_list and times_list as lists of empty lists
 parameters_list = []
-times_list = [[] for _ in range(5)]
+times_list = [[] for _ in range(n_experiments)]
 first = True
 n_exp = 0
-#do the mean over the 5 experiments
+#do the mean over the n_experiments experiments
 with open("system.log", "r") as file:
     for line in file:
         # Search for execution parameters and save everything in a dictionary
@@ -94,7 +95,7 @@ with open("system.log", "r") as file:
                 times_list[n_exp].append(time_min)
                 first_shutting = False
 
-#average the times of the 5 experiments, to get the mean time of each experiment parameter, time_list has 5 arrays, one for each run
+#average the times of the n_experiments experiments, to get the mean time of each experiment parameter, time_list has 5 arrays, one for each run
 #so take the mean of the elements in the same position of each array and save it in a new array
 times_list = [sum(x) / len(x) for x in zip(*times_list)]
 print("Parameters list:", parameters_list)
@@ -119,20 +120,19 @@ df['time'] = times_list
 print(df)
 
 # Plot latency vs N for a fixed tle and different alphas
-fig1, ax1 = plt.subplots(figsize=(10, 5))
+fig1, ax1 = plt.subplots(figsize=(30, 15))
 for alpha in alpha_values:
-    subset = df[(df['alpha'] == alpha) & (df['tle'] == 45)]
+    subset = df[(df['alpha'] == alpha) & (df['tle'] == 25)]
     if not subset.empty:
         ax1.plot(subset['N'], subset['time'], 'o-', label=f"alpha = {alpha}")
-ax1.set_title('Latency vs N for tle=45')
+ax1.set_title('Latency vs N for tle=25')
 ax1.set_xlabel('N')
 ax1.set_ylabel('Latency')
 ax1.legend()
 plt.savefig('latency_vs_N.png')
-plt.show()
 
 # Plot latency vs tle for a fixed N and different alphas
-fig2, ax2 = plt.subplots(figsize=(10, 5))
+fig2, ax2 = plt.subplots(figsize=(30, 15))
 for alpha in alpha_values:
     subset = df[(df['alpha'] == alpha) & (df['N'] == 10)]
     if not subset.empty:
@@ -142,17 +142,49 @@ ax2.set_xlabel('tle')
 ax2.set_ylabel('Latency')
 ax2.legend()
 plt.savefig('latency_vs_tle.png')
-plt.show()
 
-#Plot Latency vs tle for a fixed N and alpha
+#Plot Latency vs tle for all N and fixed alpha focus on tle up to 100
+fig3, ax3 = plt.subplots(figsize=(30, 15))
 for N in N_values:
-    fig, ax = plt.subplots(figsize=(10, 5))
-    subset = df[(df['N'] == N) & (df['alpha'] == 0.0)]
+    subset = df[(df['alpha'] == 0.0) & (df['N'] == N) & (df['tle'] <= 150)]
     if not subset.empty:
-        ax.plot(subset['tle'], subset['time'], 'o-', label=f"N = {N}")
-    ax.set_title(f'Latency vs tle for alpha=0.0, N={N}')
-    ax.set_xlabel('tle')
-    ax.set_ylabel('Latency')
-    ax.legend()
-    plt.savefig(f'latency_vs_tle_N_{N}.png')
-    plt.show()
+        ax3.plot(subset['tle'], subset['time'], 'o-', label=f"N = {N}")
+        #add a line to show the mean of the time for each N
+        ax3.axhline(y=subset['time'].mean(),  linestyle='--', label=f"Mean N = {N}", color = 'black')
+        
+        
+ax3.set_title('Latency vs tle for alpha=0.0')
+ax3.set_xlabel('tle')
+ax3.set_ylabel('Latency')
+ax3.legend()
+plt.savefig('latency_vs_tle_all_N_a00.png')
+
+#Plot Latency vs tle for all N and fixed alpha focus on tle up to 100
+fig3, ax3 = plt.subplots(figsize=(30, 15))
+for N in N_values:
+    subset = df[(df['alpha'] == 0.1) & (df['N'] == N) & (df['tle'] <= 150)]
+    if not subset.empty:
+        ax3.plot(subset['tle'], subset['time'], 'o-', label=f"N = {N}")
+        #add a line to show the mean of the time for each N
+        ax3.axhline(y=subset['time'].mean(),  linestyle='--', label=f"Mean N = {N}", color = 'black')
+        
+        
+ax3.set_title('Latency vs tle for alpha=0.1')
+ax3.set_xlabel('tle')
+ax3.set_ylabel('Latency')
+ax3.legend()
+plt.savefig('latency_vs_tle_all_N_a01.png')
+
+#Plot Latency vs tle for all N and fixed alpha focus on tle up to 100
+fig3, ax3 = plt.subplots(figsize=(30, 15))
+subset = df[(df['alpha'] == 0.1) & (df['N'] == 40) & (df['tle'] <= 100)]
+if not subset.empty:
+    ax3.plot(subset['tle'], subset['time'], 'o-', label=f"N = {40}")
+    #add a line to show the mean of the time for each N
+    ax3.axhline(y=subset['time'].mean(),  linestyle='--', label=f"Mean N = {40}", color = 'black')
+    
+ax3.set_title('Latency vs tle for alpha=0.1 and N=40')
+ax3.set_xlabel('tle')
+ax3.set_ylabel('Latency')
+ax3.legend()
+plt.savefig('latency_vs_tle_N40_a01.png')

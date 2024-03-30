@@ -53,7 +53,7 @@ public class Main {
         
 
         for (int i = 0; i < N; i++) {
-            final ActorRef a = system.actorOf(Process.createActor(N, i, alpha));
+            final ActorRef a = system.actorOf(Process.createActor(N, i+1, alpha));
             processes.add(a);
         }
         
@@ -90,7 +90,7 @@ public class Main {
                 system.scheduler().scheduleOnce(Duration.create(tle, TimeUnit.MILLISECONDS), processes.get(i), new Hold(), system.dispatcher(), null);
             }
         }
-        //system.scheduler().scheduleOnce(Duration.create(tle, TimeUnit.MILLISECONDS), processes.get(f), new Launch(), system.dispatcher(), null);
+        system.scheduler().scheduleOnce(Duration.create(tle, TimeUnit.MILLISECONDS), processes.get(f), new Launch(), system.dispatcher(), null);
 
         // Schedule the shutdown after a certain period of time (tle + tle second for safety)
         // system.scheduler().scheduleOnce(

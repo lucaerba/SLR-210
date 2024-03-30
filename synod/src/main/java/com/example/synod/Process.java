@@ -88,6 +88,7 @@ public class Process extends UntypedAbstractActor {
 
         if (message instanceof Membership) {
             if(DEBUG) log.info(this + " - membership received");
+
             Membership m = (Membership) message;
             processes = (ArrayList<ActorRef>) m.references;
 
@@ -107,7 +108,7 @@ public class Process extends UntypedAbstractActor {
                     }
                 }
                 propose(this.decidedValue);
-                getContext().system().scheduler().scheduleOnce(Duration.create(20, TimeUnit.MILLISECONDS), getSelf(), new Launch(), getContext().system().dispatcher(), null);
+                getContext().system().scheduler().scheduleOnce(Duration.create(50, TimeUnit.MILLISECONDS), getSelf(), new Launch(), getContext().system().dispatcher(), null);
 
         } else if (message instanceof Read){
             if(DEBUG) log.info(this + " - read received");
@@ -205,8 +206,7 @@ public class Process extends UntypedAbstractActor {
         //  If we get at least n/2 states (majority)
         if (this.states.size() >= this.n/2){
             int highestEstBallot = 0;
-            Integer proposal = 0;
-
+            int proposal = -1;
             for (State s : this.states.values()){
                 if (s.getEstballot() > highestEstBallot){
                     highestEstBallot = s.getEstballot();
@@ -214,13 +214,9 @@ public class Process extends UntypedAbstractActor {
                 }
             }
 
-            if (proposal > 0){
-                this.proposal = proposal;
-            }
-
             this.states.clear();
             for (ActorRef actor : this.processes){
-                actor.tell(new Impose(newBallot, this.proposal), getSelf());
+                actor.tell(new Impose(newBallot, proposal), getSelf());
 
             }
         }
