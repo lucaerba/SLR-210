@@ -7,6 +7,10 @@ public class Read {
         this.ballot = ballot;
     }
 
+    
+    /** 
+     * @return int
+     */
     public int getBallot() {
         return this.ballot;
     }

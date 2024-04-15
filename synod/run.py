@@ -32,8 +32,9 @@ def run_java():
                     #run them sequentially not in parallel
                     subprocess.run(command)
 
-#run_java()
-
+###################RUNNING JAVA####################
+run_java()
+###################READING LOG FILE#################### 
 import re
 # Initialize parameters_list and times_list as lists of empty lists
 parameters_list = []
@@ -102,7 +103,7 @@ print("Parameters list:", parameters_list)
 print("Times list:", times_list)
 
 
-
+#########PLOTTING##############
 
 #plot the data using the data collected
 #Your goal is to find out how the latency depends on N (for a fixed tle) and tle (for a fixed N). Also try to see if the probability of failures α (for fixed N and tle) affects the latency.

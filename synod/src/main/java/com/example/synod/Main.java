@@ -18,6 +18,11 @@ public class Main {
 
     public static long startTime;
 
+    
+    /** 
+     * @param args
+     * @throws InterruptedException
+     */
     public static void main(String[] args) throws InterruptedException {
         if (args.length != 4) {
             for(String s:args){
@@ -91,15 +96,5 @@ public class Main {
             }
         }
         system.scheduler().scheduleOnce(Duration.create(tle, TimeUnit.MILLISECONDS), processes.get(f), new Launch(), system.dispatcher(), null);
-
-        // Schedule the shutdown after a certain period of time (tle + tle second for safety)
-        // system.scheduler().scheduleOnce(
-        //         Duration.create(tle + tle, TimeUnit.MILLISECONDS),
-        //         () -> {
-        //             system.terminate();
-        //             System.out.println("System is shutting down...");
-        //         },
-        //         system.dispatcher()
-        // );
     }
 }
